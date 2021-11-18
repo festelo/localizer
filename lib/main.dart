@@ -175,7 +175,8 @@ void main(List<String> arguments) async {
     }
 
     while (true) {
-      print('\nType compare or sync');
+      print(
+          '\nType compare or sync. You can pass key to sync, like `sync SOME_KEY`. In this case only 1 key will be translated.');
       final inp = readLine().trim();
       final splitted = inp.split(' ');
       final param = splitted.length > 1 ? splitted[1] : null;
