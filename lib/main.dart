@@ -89,7 +89,7 @@ void main(List<String> arguments) async {
       return ok;
     }
 
-    Future<void> syncKeys([String key]) async {
+    Future<void> syncKeys({String key, bool copy}) async {
       final newLines = <String, List<String>>{};
       final mainContent = mainFile.readAsStringSync();
       final mainJson = Map<String, String>.from(jsonDecode(mainContent));
@@ -119,8 +119,9 @@ void main(List<String> arguments) async {
           newLines.values.map((e) => e.length).reduce((a, b) => a + b);
       for (final key in newLines.keys) {
         for (final language in newLines[key]) {
-          final entity =
-              await translate(key, mainJson[key], mainLanguage, language);
+          final entity = copy
+              ? TranslationEntity(language, key, mainJson[key])
+              : await translate(key, mainJson[key], mainLanguage, language);
           translated.add(entity);
           print('Progress: ${translated.length}/$total');
         }
@@ -157,7 +158,16 @@ void main(List<String> arguments) async {
           print('Fix problems first');
           return;
         }
-        await syncKeys(param);
+        await syncKeys(key: param);
+        return;
+      }
+      if (inp == 'sync_copy') {
+        final keysEquals = compare();
+        if (!keysEquals) {
+          print('Fix problems first');
+          return;
+        }
+        await syncKeys(key: param, copy: true);
         return;
       }
       print('Input $inp not recognized');
@@ -176,7 +186,7 @@ void main(List<String> arguments) async {
 
     while (true) {
       print(
-          '\nType compare or sync. You can pass key to sync, like `sync SOME_KEY`. In this case only 1 key will be translated.');
+          '\nType compare, sync or sync_copy. You can pass key to sync and to sync_copy, like `sync SOME_KEY`. In this case only 1 key will be translated.');
       final inp = readLine().trim();
       final splitted = inp.split(' ');
       final param = splitted.length > 1 ? splitted[1] : null;
